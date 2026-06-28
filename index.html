@@ -203,7 +203,7 @@
     <div class="grid2 top">
       <figure class="bordered">
         <img src="img/schematic-parallel.png" alt="Schematic of the bridge: probe inputs, series resistors, bridge MOSFET Q8, Schottky clamp diodes, and an LM4060 reference.">
-        <figcaption>The parallel / minimalist front end (1.25&nbsp;V LM4060 reference).</figcaption>
+        <figcaption>The parallel front end (1.25&nbsp;V LM4060 reference).</figcaption>
       </figure>
       <div>
         <p>A MOSFET (Q8) sits in series with the sense leg of a biased voltage divider (1.25–2.5&nbsp;V).
@@ -277,16 +277,16 @@
     <h2>Same bridge, opposite goals</h2>
     <p>The exact same MOSFET-bridge trick is tuned two ways. The <strong>standalone</strong> build optimizes for
       <em>information</em> — a 2.5&nbsp;V reference gives a big swing so the firmware can resolve the rich
-      “in-between” states. The <strong>parallel</strong> build optimizes for <em>invisibility</em> — clip it across
-      any meter you already own and it adds open-lead detection while injecting a signal small enough not to
-      corrupt the host reading.</p>
+      “in-between” states. The <strong>parallel</strong> build — <strong>Blinky&nbsp;Hawk</strong> — optimizes for
+      <em>invisibility</em>: clip it across any meter you already own and it adds open-lead detection while
+      injecting a signal small enough not to corrupt the host reading.</p>
     <figure class="bordered">
       <img src="img/chart-twoflavors.png" loading="lazy" alt="Two discrimination curves: standalone version with a ~340 mV span and DMM/parallel version with a ~10 mV span.">
       <figcaption>Settled differential vs probe resistance — the quantity the firmware thresholds on.</figcaption>
     </figure>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>&nbsp;</th><th>Standalone version</th><th>DMM / parallel version</th></tr></thead>
+        <thead><tr><th>&nbsp;</th><th>Standalone version</th><th>Blinky&nbsp;Hawk (parallel)</th></tr></thead>
         <tbody>
           <tr><td><strong>Purpose</strong></td><td>Standalone voltmeter that detects closed leads</td><td>Ternary Open / Closed / Voltage, minimal ghost V, compact</td></tr>
           <tr><td><strong>ADC</strong></td><td>ADS1015 on an isolated rail</td><td>Internal MCU ADC</td></tr>
@@ -306,9 +306,10 @@
   <div class="wrap">
     <span class="eyebrow">The hardware</span>
     <h2>Real builds, validated on lots of silicon</h2>
-    <p>These aren't breadboard toys. The standalone build runs on an ADS1015 / ADS1115; the minimalist parallel
-      build has been validated on a Renesas <strong>RA4M1</strong>, an <strong>RP2040</strong> (XIAO), and a
-      <strong>SAMD21</strong> (QT&nbsp;Py). Every ADC + MCU combination tried functions as expected.</p>
+    <p>These aren't breadboard toys. The standalone build runs on an ADS1015 / ADS1115; <strong>Blinky&nbsp;Hawk</strong>,
+      the minimalist parallel build, has been validated on a Renesas <strong>RA4M1</strong>, an
+      <strong>RP2040</strong> (XIAO), and a <strong>SAMD21</strong> (QT&nbsp;Py). Every ADC + MCU combination tried
+      functions as expected.</p>
     <figure>
       <img src="img/build-flavors.jpg" loading="lazy" alt="The family of devices: a parallel detector clipped onto a Keysight DMM, a red standalone unit, and a compact MCU build.">
       <figcaption>The family: a parallel detector clipped onto a commercial DMM, plus standalone units.</figcaption>
@@ -320,7 +321,7 @@
       </figure>
       <figure>
         <img src="img/dmm-exploded.jpg" loading="lazy" alt="Exploded view of the DMM/minimalist build: PCB, MCU, toggle switch, banana plugs, LED and battery in helping-hands clamps.">
-        <figcaption><strong>Parallel / minimalist</strong> — 1.25&nbsp;V ref, the MCU's own ADC.</figcaption>
+        <figcaption><strong>Blinky&nbsp;Hawk</strong> (parallel) — 1.25&nbsp;V ref, the MCU's own ADC.</figcaption>
       </figure>
     </div>
     <div class="grid2 top">
@@ -330,7 +331,7 @@
       </figure>
       <figure class="bordered">
         <img src="img/schematic-parallel.png" loading="lazy" alt="Parallel version schematic with the LM4060 1.25 V reference.">
-        <figcaption>Parallel / minimalist schematic (1.25&nbsp;V, MCU ADC).</figcaption>
+        <figcaption>Blinky&nbsp;Hawk schematic (1.25&nbsp;V, MCU ADC).</figcaption>
       </figure>
     </div>
   </div>
@@ -412,7 +413,7 @@
         <ul class="clean">
           <li>Could the standalone version <em>measure</em> impedance well enough to tell an inductive load from a
             short? (May need active pulsing.)</li>
-          <li>Would differential amplification into a single-ended input sharpen the parallel version?</li>
+          <li>Would differential amplification into a single-ended input sharpen Blinky&nbsp;Hawk?</li>
           <li>Is there any device you'd normally probe that this tiny injected signal could harm?</li>
         </ul>
       </div>
