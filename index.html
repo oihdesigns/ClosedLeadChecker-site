@@ -182,7 +182,7 @@
     <span class="eyebrow">The solution, in one sentence</span>
     <div class="quote">A voltmeter that <span style="color:var(--accent)">continuously and automatically</span>
       runs a continuity check between the probes whenever voltage is below a threshold (&lt;&nbsp;1&nbsp;V) —
-      and alerts you the instant it sees a galvanic connection.</div>
+      and alerts you the instant it sees a low-impedance path between the probes.</div>
     <p>No mode switch. No exposed ohmmeter. No guessing what “0&nbsp;V” means. It has to clear a short list of
       hard requirements:</p>
     <p>
@@ -391,14 +391,23 @@
           <tr><td>Air gap</td><td>0 V</td><td class="verdict-open">“Open Leads”</td></tr>
           <tr><td>Open relay</td><td>0 V</td><td class="verdict-open">“Open Leads”</td></tr>
           <tr><td>Diode (unenergized)</td><td>0 V</td><td>Function of polarity / type</td></tr>
-          <tr><td>Transformer pri↔sec (unenergized)</td><td>0 V</td><td>Rough impedance measurement *</td></tr>
+          <tr><td>Transformer pri↔sec (unenergized)</td><td>0 V</td><td>may read <span class="verdict-closed">“Closed”</span> (reactive coupling) *</td></tr>
+          <tr><td>Capacitor</td><td>0 V</td><td>reads <span class="verdict-closed">“Closed”</span> while charging *</td></tr>
           <tr><td>GPIO pin, output low</td><td>0 V</td><td class="verdict-closed">“Leads Closed”</td></tr>
           <tr><td>GPIO pin, MCU off</td><td>0 V</td><td class="verdict-open">“Open Leads”</td></tr>
           <tr><td>Energized impedance</td><td>Voltage</td><td>Voltage</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="small muted">* Tuning the circuit to characterize transformer impedance is on the roadmap.</p>
+    <p class="small muted">* It measures impedance to a fast pulse, not pure DC continuity — so reactive parts can read “Closed” even with no galvanic path.</p>
+    <p><strong>One honest limitation.</strong> Blinky&nbsp;Hawk detects a <em>low-impedance path</em> to a fast injected
+      transient — which, the vast majority of the time, is a genuine wire-to-wire connection. Reactive components are
+      the exception. A <strong>capacitor</strong> passes the transient and reads like a short that climbs as it charges
+      (short → tens of kΩ → settling around 100 kΩ), so it can trip “Closed.” A <strong>transformer</strong>,
+      winding-to-winding, couples that transient through its interwinding capacitance: one tested unit read
+      <strong>&gt;4 GΩ on a megohmmeter</strong> (galvanically wide open) yet still presented a low-impedance path and
+      read “Closed.” So near reactive parts, treat a “Closed” as <em>“low-impedance path,”</em> not
+      <em>“guaranteed DC connection.”</em></p>
   </div>
 </section>
 
