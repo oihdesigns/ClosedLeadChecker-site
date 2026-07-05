@@ -403,7 +403,34 @@
 </section>
 
 <!-- ROADMAP -->
-<section id="roadmap" class="alt">
+<section id="tunable" class="alt">
+  <div class="wrap">
+    <span class="eyebrow">Planned change</span>
+    <h2>User-tunable sensitivity</h2>
+    <p>Blinky&nbsp;Hawk's sensitivity is a genuine tradeoff: raising the
+      <strong>permanent series resistance</strong> in the bridge grows the detection signal — and the spread
+      between impedances — but injects <strong>more ghost voltage</strong> onto the host meter. So it's worth
+      letting it be dialed in.</p>
+    <div class="grid2 top">
+      <figure class="bordered">
+        <img src="img/chart-tunable.png" loading="lazy" alt="Detection differential vs total permanent series resistance from 100 kΩ to 1.1 MΩ, for probe resistances 10 kΩ to 10 MΩ; higher resistance gives more signal.">
+        <figcaption>Real calibration data — more series resistance means more signal (and more ghost voltage).</figcaption>
+      </figure>
+      <figure>
+        <img src="img/blinkyhawk-prototype.jpg" loading="lazy" alt="A Fluke meter held in hand with the Blinky Hawk prototype clipped on, showing a bulky panel-mount tuning dial.">
+        <figcaption>The bench proof-of-concept — with a bulky panel dial.</figcaption>
+      </figure>
+    </div>
+    <p>That proof-of-concept used a panel-mount dial — it works, but it's bulky. The shipping design replaces it
+      with a small <strong>4-way DIP switch</strong> on the board: two positions bypass resistors to set the
+      bridge resistance (~200&nbsp;kΩ–1.7&nbsp;MΩ), and two more are wired to the microcontroller so the board
+      knows the setting — you retune by flipping switches, with <strong>no reprogramming</strong>. The shipping
+      version also adds an <strong>optional buzzer</strong> for audio alerts when you don't have eyes on the LED.</p>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap">
   <div class="wrap">
     <span class="eyebrow">Where it's going</span>
     <h2>Open questions &amp; product decisions</h2>
@@ -420,10 +447,8 @@
       <div>
         <h3 style="margin-top:0">Product decisions — your input welcome</h3>
         <ul class="clean">
-          <li>Alert threshold: fixed, or user-selectable (10 MΩ / 1 MΩ)?</li>
           <li>Maximum withstand voltage vs. smaller &amp; cheaper?</li>
           <li>Power: LiPo (USB-C) vs. a sealed AA?</li>
-          <li>Alert: LED only, or add sound?</li>
         </ul>
       </div>
     </div>
@@ -431,7 +456,7 @@
 </section>
 
 <!-- GET INVOLVED -->
-<section id="involved">
+<section id="involved" class="alt">
   <div class="wrap">
     <span class="eyebrow">Get involved</span>
     <h2>Working prototypes today — looking for help to finish it</h2>
