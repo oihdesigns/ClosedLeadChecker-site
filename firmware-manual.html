@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blinky Hawk Firmware Manual — Configuration &amp; Serial Reference | OIH Designs</title>
+<meta name="description" content="End-user manual for the Blinky Hawk (XIAO RA4M1) open-lead-detector firmware: how detection works, DIP-switch threshold selection, and the full EEPROM configuration / serial command reference.">
+<style>
+  :root{
+    --accent:#0b6fb8; --accent-dark:#095a94; --ink:#1b2a3a; --muted:#5b6b7a;
+    --grid:#d7dee5; --bg:#ffffff; --bg-alt:#f3f7fb; --bg-ink:#142231;
+    --green:#1a7f37; --red:#b3261e; --amber:#b8860b;
+    --maxw:1080px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; color:var(--ink); background:var(--bg);
+    font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    font-size:18px; line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  h1,h2,h3{line-height:1.2; color:var(--ink);}
+  h1{font-size:2.4rem; margin:.2em 0 .25em; letter-spacing:-.5px;}
+  h2{font-size:1.8rem; margin:0 0 .3em;}
+  h3{font-size:1.2rem; margin:1.6em 0 .4em;}
+  p{margin:.7em 0;}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px;}
+  section{padding:56px 0; border-top:1px solid var(--grid);}
+  section.alt{background:var(--bg-alt);}
+  .eyebrow{display:inline-block; font-size:.8rem; font-weight:700; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--accent); margin-bottom:.4em;}
+  .lede{font-size:1.15rem; color:var(--muted);}
+
+  nav{position:sticky; top:0; z-index:50; background:rgba(255,255,255,.92);
+    backdrop-filter:saturate(150%) blur(8px); border-bottom:1px solid var(--grid);}
+  nav .wrap{display:flex; align-items:center; justify-content:space-between; height:60px;}
+  nav .brand{font-weight:700; color:var(--ink); font-size:1.05rem;}
+  nav .brand span{color:var(--accent);}
+  nav .links a{color:var(--ink); font-size:.95rem; margin-left:22px; font-weight:500;}
+  nav .links a:hover{color:var(--accent); text-decoration:none;}
+  @media(max-width:760px){ nav .links a:not(.home){display:none;} }
+
+  .hero{background:linear-gradient(180deg,#fff 0%, var(--bg-alt) 100%); border-top:none;
+    padding:56px 0 48px;}
+  .hero .sub{font-size:1.25rem; color:var(--muted); margin:0 0 .6em;}
+  .badge{display:inline-block; background:#fff; border:1px solid var(--grid);
+    color:var(--muted); font-size:.8rem; font-weight:600; padding:4px 12px;
+    border-radius:999px; margin-bottom:14px;}
+
+  .tablewrap{overflow-x:auto; margin:22px 0;}
+  table{border-collapse:collapse; width:100%; font-size:.92rem; background:#fff;}
+  th,td{border:1px solid var(--grid); padding:9px 13px; text-align:left; vertical-align:top;}
+  thead th{background:var(--accent); color:#fff; font-weight:600;}
+  tbody tr:nth-child(even) td{background:var(--bg-alt);}
+
+  code, .mono{font-family:Consolas,"Cascadia Mono",Menlo,monospace; font-size:.9em;
+    background:var(--bg-alt); border:1px solid var(--grid); border-radius:5px;
+    padding:1px 6px; white-space:nowrap;}
+  td code{background:#eef4fa;}
+  pre{font-family:Consolas,"Cascadia Mono",Menlo,monospace; font-size:.88rem;
+    background:var(--bg-ink); color:#dfe9f2; border-radius:10px; padding:18px 22px;
+    overflow-x:auto; line-height:1.55;}
+  pre .c{color:#7fa8c9;}     /* comment */
+  pre .tx{color:#8fd18f;}    /* device reply */
+
+  .callout{border-left:5px solid var(--accent); background:var(--bg-alt);
+    padding:14px 22px; border-radius:0 10px 10px 0; margin:18px 0;}
+  .callout.warn{border-color:var(--amber);}
+  .callout.danger{border-color:var(--red);}
+  .callout p{margin:.35em 0;}
+
+  ul.clean{padding-left:1.2em;} ul.clean li{margin:.45em 0;}
+  .pill{display:inline-block; background:#eef4fa; color:var(--accent-dark);
+    border:1px solid #cfe0ee; border-radius:999px; padding:3px 12px; font-size:.85rem;
+    font-weight:600; margin:3px 6px 3px 0;}
+  .led{display:inline-block; width:.85em; height:.85em; border-radius:50%;
+    vertical-align:-.08em; margin-right:.45em; border:1px solid rgba(0,0,0,.15);}
+  .led.blue{background:#3b6fe0;} .led.green{background:#1a7f37;}
+  .led.red{background:#b3261e;} .led.dimred{background:#c98a86;}
+  .led.off{background:#e8edf2;}
+
+  .toc{background:#fff; border:1px solid var(--grid); border-radius:12px;
+    padding:20px 26px; margin-top:26px;}
+  .toc ol{margin:.4em 0 0; padding-left:1.3em; columns:2; column-gap:40px;}
+  .toc li{margin:.3em 0; break-inside:avoid;}
+  @media(max-width:700px){ .toc ol{columns:1;} }
+
+  footer{background:var(--bg-ink); color:#cdd8e3; padding:44px 0 36px; border-top:none;}
+  footer a{color:#fff;}
+  .small{font-size:.88rem;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand">OIH&nbsp;<span>Designs</span></div>
+    <div class="links">
+      <a href="#detection">Detection</a>
+      <a href="#indicators">Indicators</a>
+      <a href="#dip">DIP&nbsp;Switches</a>
+      <a href="#serial">Serial</a>
+      <a href="#config">Config&nbsp;Keys</a>
+      <a class="home" href="index.html">&larr; Main&nbsp;Site</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="badge">Firmware: BlinkyHawk_RA4M1 &middot; config v1</span>
+    <div class="eyebrow">End-User Documentation</div>
+    <h1>Blinky Hawk Firmware Manual</h1>
+    <p class="sub">How the open-lead detector firmware works — and how to reconfigure a shipped
+      unit over USB serial without touching the code.</p>
+    <p class="lede">The Blinky Hawk continuously answers one question: <em>are my leads actually
+      connected to anything?</em> It flashes and beeps for continuity, warns on live voltage, and
+      every behavioural knob — thresholds, beeper, timings — is stored in on-chip EEPROM and
+      adjustable with plain-text serial commands.</p>
+
+    <div class="toc">
+      <strong>Contents</strong>
+      <ol>
+        <li><a href="#overview">Overview &amp; states</a></li>
+        <li><a href="#detection">How detection works</a></li>
+        <li><a href="#indicators">LED &amp; speaker indicators</a></li>
+        <li><a href="#dip">DIP-switch threshold select</a></li>
+        <li><a href="#serial">Serial interface &amp; commands</a></li>
+        <li><a href="#config">Configuration key reference</a></li>
+        <li><a href="#eeprom">How EEPROM storage works</a></li>
+        <li><a href="#diag">Diagnostic mode</a></li>
+        <li><a href="#recipes">Common recipes</a></li>
+        <li><a href="#fixed">Fixed (compile-time) hardware map</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section id="overview">
+  <div class="wrap">
+    <div class="eyebrow">1 &middot; Overview</div>
+    <h2>Three states, always live</h2>
+    <p>The firmware loops continuously and classifies the test leads into one of three states:</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>State</th><th>Meaning</th><th>LED</th><th>Speaker</th></tr></thead>
+      <tbody>
+        <tr><td><strong>FLOATING</strong> (open)</td>
+            <td>The leads are not connected to anything (or to a resistance above the active threshold).</td>
+            <td><span class="led blue"></span>Dim blue flash, max 1&nbsp;Hz</td>
+            <td>Silent</td></tr>
+        <tr><td><strong>CLOSED</strong> (continuity)</td>
+            <td>The leads see a low resistance path.</td>
+            <td><span class="led green"></span>Green flash, max 2&nbsp;Hz</td>
+            <td>Beep on contact, then a repeat beep every second while held (configurable)</td></tr>
+        <tr><td><strong>VOLTAGE</strong></td>
+            <td>An external voltage is present across the leads. The open/closed test is bypassed for safety.</td>
+            <td><span class="led red"></span>Red flash, max 2&nbsp;Hz</td>
+            <td>Double beep on detection (configurable)</td></tr>
+      </tbody>
+    </table></div>
+    <p>While charging over USB the normal alerts are replaced by a slow dim
+      <span class="led dimred"></span>red blink (green once the battery reads full), and at
+      power-on the LED blinks green 1–4 times to show the battery level in quarters.</p>
+  </div>
+</section>
+
+<section id="detection" class="alt">
+  <div class="wrap">
+    <div class="eyebrow">2 &middot; Detection</div>
+    <h2>How detection works</h2>
+    <p>The analog front end measures a <strong>pseudo-differential</strong> voltage: the positive
+      sense input is sampled by the RA4M1's 14-bit ADC and compared against a reference. (By
+      default the negative side is a fixed 1.25&nbsp;V pseudo-reference — see
+      <code>NEGFIX</code>/<code>NEGV</code> — rather than a live second ADC read.) At rest the
+      differential sits near 0&nbsp;V, so everything works on the <em>magnitude of the deviation
+      from zero</em>.</p>
+    <p>Each pass of the main loop runs this sequence:</p>
+    <ol>
+      <li><strong>Rest.</strong> The bridge MOSFET is held ON (resting state) and the differential
+        is read.</li>
+      <li><strong>Voltage check.</strong> If any single reading deviates more than
+        <code>VOLTFAST</code>&nbsp;&times;&nbsp;<code>REFBAND</code> from
+        <code>REFCENTER</code>, voltage is declared immediately. Otherwise
+        <code>VOLTAVG</code> readings are averaged and compared against the
+        <code>REFBAND</code> window. Voltage present &rarr; state = VOLTAGE, and the MOSFET test
+        is skipped entirely.</li>
+      <li><strong>Open/closed test.</strong> The MOSFET switches OFF, the front end settles for
+        <code>SETTLEPREUS</code>&nbsp;µs, the differential is read, and the MOSFET returns ON.
+        If the deviation exceeds the <em>active threshold</em> (set by the DIP switches — next
+        section) the leads are FLOATING; otherwise they are CLOSED. The test can be required to
+        agree <code>TESTAGREE</code> times in a row before it counts.</li>
+      <li><strong>Debounce.</strong> A newly detected state must repeat for
+        <code>STABLECOUNT</code> consecutive passes before the LED/speaker switch to it, so a
+        single noisy reading can't make the alerts stutter.</li>
+    </ol>
+    <div class="callout">
+      <p><strong>Everything in <code>CODE-LIKE</code> type above is an EEPROM configuration
+        key.</strong> The full reference, including defaults and allowed ranges, is in
+        <a href="#config">section 6</a>.</p>
+    </div>
+  </div>
+</section>
+
+<section id="indicators">
+  <div class="wrap">
+    <div class="eyebrow">3 &middot; Indicators</div>
+    <h2>LED &amp; speaker behaviour</h2>
+
+    <h3>LED states</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Pattern</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><span class="led blue"></span>Dim blue flash (1&nbsp;Hz max)</td><td>Leads floating / open.</td></tr>
+        <tr><td><span class="led green"></span>Green flash (2&nbsp;Hz max)</td><td>Continuity (closed).</td></tr>
+        <tr><td><span class="led red"></span>Red flash (2&nbsp;Hz max)</td><td>Voltage present — detection bypassed.</td></tr>
+        <tr><td><span class="led dimred"></span>Slow dim-red blink (25% duty)</td><td>Charging over USB; normal alerts suppressed. Send <code>!ALERTS,1</code> to re-enable alerts for the session.</td></tr>
+        <tr><td><span class="led green"></span>Slow dim-green blink while plugged in</td><td>Charging and the battery reads full (&ge; <code>BATTFULLPCT</code>&nbsp;%).</td></tr>
+        <tr><td><span class="led green"></span>1–4 green blinks at power-on</td><td>Battery level: 1&nbsp;=&nbsp;0–25%, 2&nbsp;=&nbsp;25–50%, 3&nbsp;=&nbsp;50–75%, 4&nbsp;=&nbsp;75–100%.</td></tr>
+        <tr><td><span class="led off"></span>Off between flashes</td><td>Normal — every alert is a rate-limited flash, not a steady light, to save power.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Speaker</h3>
+    <ul class="clean">
+      <li><strong>Continuity:</strong> a short beep the moment contact is made, then (by default)
+        a repeat beep every second for as long as the circuit stays closed
+        (<code>CONTREP</code>/<code>CONTREPMS</code>).</li>
+      <li><strong>Voltage:</strong> a double beep at a higher pitch, once per detection
+        (<code>VOLTPULSES</code>/<code>VOLTREP</code>). Voltage is a priority alert — it sounds
+        immediately even if a continuity beep just fired.</li>
+      <li><strong>Rate cap:</strong> no new beep sequence can start within
+        <code>BEEPMIN</code>&nbsp;ms of the previous one, so an intermittent connection can't
+        machine-gun the beeper.</li>
+      <li><strong>Boot mute:</strong> if the leads are shorted together while the unit powers up,
+        audio stays muted until the next power cycle. Handy for quiet environments; disable the
+        feature entirely with <code>!SET,BOOTMUTE,0</code>.</li>
+      <li><strong>Kill it permanently:</strong> <code>!SET,BEEP,0</code> then <code>!SAVE</code>.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="dip" class="alt">
+  <div class="wrap">
+    <div class="eyebrow">4 &middot; Threshold Select</div>
+    <h2>DIP-switch threshold selection</h2>
+    <p>Two DIP switches (on pins D8 and D10) select which of <strong>four stored thresholds</strong>
+      the open/closed test uses. Each pin has a pull-up and the switch shorts it to ground, so a
+      switch that is <strong>ON reads 0</strong> and one that is <strong>OFF reads 1</strong>. The
+      position code below is written as the two pin readings, <em>first digit&nbsp;=&nbsp;D8,
+      second digit&nbsp;=&nbsp;D10</em>:</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Position</th><th>D8 switch</th><th>D10 switch</th><th>Config key</th><th>Factory default</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">00</td><td>ON</td><td>ON</td><td><code>THRESH00</code></td><td>0.05&nbsp;V (most sensitive)</td></tr>
+        <tr><td class="mono">01</td><td>ON</td><td>OFF</td><td><code>THRESH01</code></td><td>0.15&nbsp;V</td></tr>
+        <tr><td class="mono">10</td><td>OFF</td><td>ON</td><td><code>THRESH10</code></td><td>0.30&nbsp;V</td></tr>
+        <tr><td class="mono">11</td><td>OFF</td><td>OFF</td><td><code>THRESH11</code></td><td>0.50&nbsp;V (as-shipped position)</td></tr>
+      </tbody>
+    </table></div>
+    <p>The switches are read <strong>live</strong> — flip them at any time and the very next
+      detection pass uses the new threshold. When connected over serial, a change is announced as
+      <code>$DIP,&lt;position&gt;,&lt;threshold&gt;</code>.</p>
+    <div class="callout">
+      <p><strong>The switch positions are re-programmable.</strong> The four values are just EEPROM
+        entries: e.g. <code>!SET,THRESH00,0.02</code> followed by <code>!SAVE</code> permanently
+        changes what the 00 position means on that unit. This lets you ship one firmware and tune
+        each unit's sensitivity map to its application.</p>
+    </div>
+  </div>
+</section>
+
+<section id="serial">
+  <div class="wrap">
+    <div class="eyebrow">5 &middot; Serial Interface</div>
+    <h2>Talking to the unit</h2>
+    <p>Connect over USB and open the port at <strong>115200 baud</strong>. Any serial terminal
+      works (Arduino Serial Monitor, PuTTY, a Python script). The protocol is line-based text:</p>
+    <ul class="clean">
+      <li><strong>Commands in</strong> start with <code>!</code> and end with a newline. Arguments
+        are comma-separated. Commands are case-insensitive.</li>
+      <li><strong>Structured data out</strong> starts with <code>$</code> and is comma-separated —
+        easy for a program to parse. Human-readable status lines are printed alongside.</li>
+    </ul>
+
+    <h3>Configuration commands</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Command</th><th>What it does</th><th>Reply</th></tr></thead>
+      <tbody>
+        <tr><td><code>!SET,&lt;key&gt;,&lt;value&gt;</code></td>
+            <td>Set a configuration value in RAM. Takes effect immediately; values outside the
+                allowed range are clamped. <em>Not yet permanent</em> — follow with <code>!SAVE</code>.</td>
+            <td><code>$CFG,&lt;key&gt;,&lt;value&gt;</code> (the value actually stored)</td></tr>
+        <tr><td><code>!GET,&lt;key&gt;</code></td><td>Report one configuration value.</td>
+            <td><code>$CFG,&lt;key&gt;,&lt;value&gt;</code></td></tr>
+        <tr><td><code>!CFG</code></td><td>Dump every configuration key.</td>
+            <td>One <code>$CFG</code> row per key, then <code>$CFGEND</code></td></tr>
+        <tr><td><code>!SAVE</code></td><td>Write the RAM configuration to EEPROM — this is what
+            makes changes survive a power cycle.</td><td><code>$OK,save</code></td></tr>
+        <tr><td><code>!LOAD</code></td><td>Discard unsaved RAM changes and reload from EEPROM.</td>
+            <td><code>$OK,load</code></td></tr>
+        <tr><td><code>!DEFAULTS</code></td><td>Load factory defaults into RAM (EEPROM untouched
+            until you <code>!SAVE</code>).</td><td><code>$OK,defaults</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Status &amp; diagnostic commands</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>!STATUS</code> or <code>!?</code></td><td>Print the <code>$STATUS</code> summary line (mode, DIP position, active threshold, charge/battery state, unsaved-changes flag&hellip;).</td></tr>
+        <tr><td><code>!ALERTS[,0|1]</code></td><td>Re-enable the normal alerts while charging (<code>1</code>) or restore the charging blink (<code>0</code>). Bare = toggle. Auto-clears on unplug.</td></tr>
+        <tr><td><code>!DIAG[,0|1]</code></td><td>Enter/exit diagnostic mode (bare = toggle). See <a href="#diag">section 8</a>.</td></tr>
+        <tr><td><code>!STREAM[,0|1]</code></td><td>Continuous raw ADC streaming on/off (diagnostic mode only).</td></tr>
+        <tr><td><code>!RATE,&lt;ms&gt;</code></td><td>Streaming interval in milliseconds.</td></tr>
+        <tr><td><code>!VMODE,&lt;0|1|2&gt;</code></td><td>Voltage detection override: 0 = auto, 1 = force "voltage present", 2 = disable voltage detection.</td></tr>
+        <tr><td><code>!MOSFET,&lt;-1|0|1&gt;</code></td><td>MOSFET override: &minus;1 = automatic (normal detection), 0 = hold off, 1 = hold on. Diagnostic mode only.</td></tr>
+        <tr><td><code>!CAP[,&lt;ms&gt;]</code></td><td>High-speed ADC capture across a MOSFET toggle; dumps <code>$CAPSTART</code>/<code>$CAP</code>/<code>$CAPEND</code> rows for plotting transients.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Data lines out</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Line</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>$STATUS,&hellip;</code></td><td>Key=value status summary (sent after most commands).</td></tr>
+        <tr><td><code>$CFG,&lt;key&gt;,&lt;value&gt;</code></td><td>One configuration value.</td></tr>
+        <tr><td><code>$CFGEND</code></td><td>End of a <code>!CFG</code> dump.</td></tr>
+        <tr><td><code>$OK,&lt;what&gt;</code> / <code>$ERR,&lt;what&gt;,&lt;detail&gt;</code></td><td>Command acknowledged / failed.</td></tr>
+        <tr><td><code>$DIP,&lt;pos&gt;,&lt;threshV&gt;</code></td><td>A DIP switch was flipped; new position (0–3) and active threshold.</td></tr>
+        <tr><td><code>$DIAG,&lt;ms&gt;,&lt;rawPos&gt;,&lt;rawNeg&gt;,&lt;posV&gt;,&lt;negV&gt;,&lt;diffV&gt;</code></td><td>One streamed raw sample.</td></tr>
+        <tr><td><code>$CAPSTART&hellip;</code> / <code>$CAP&hellip;</code> / <code>$CAPEND</code></td><td>Transient-capture dump (raw counts; header carries full-scale and Vref for conversion).</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="config" class="alt">
+  <div class="wrap">
+    <div class="eyebrow">6 &middot; Configuration Reference</div>
+    <h2>Every configuration key</h2>
+    <p>All keys are set with <code>!SET,&lt;key&gt;,&lt;value&gt;</code> and persisted with
+      <code>!SAVE</code>. Boolean keys take 0 or 1. Out-of-range values are clamped to the range
+      shown and the clamped value is echoed back.</p>
+
+    <h3>Detection</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Range</th><th>What it controls</th></tr></thead>
+      <tbody>
+        <tr><td><code>REFCENTER</code></td><td>volts</td><td>&minus;0.01</td><td>&minus;1 … 1</td><td>Resting differential centre. Voltage detection measures deviation from this point.</td></tr>
+        <tr><td><code>REFBAND</code></td><td>volts</td><td>0.025</td><td>0.001 … 1</td><td>Half-width of the "no voltage present" window around <code>REFCENTER</code>.</td></tr>
+        <tr><td><code>THRESH00</code></td><td>volts</td><td>0.05</td><td>0.001 … 3.3</td><td>Open/closed threshold for DIP position 00 (both switches ON).</td></tr>
+        <tr><td><code>THRESH01</code></td><td>volts</td><td>0.15</td><td>0.001 … 3.3</td><td>Threshold for DIP position 01 (D8 ON, D10 OFF).</td></tr>
+        <tr><td><code>THRESH10</code></td><td>volts</td><td>0.30</td><td>0.001 … 3.3</td><td>Threshold for DIP position 10 (D8 OFF, D10 ON).</td></tr>
+        <tr><td><code>THRESH11</code></td><td>volts</td><td>0.50</td><td>0.001 … 3.3</td><td>Threshold for DIP position 11 (both switches OFF — as shipped).</td></tr>
+        <tr><td><code>VOLTFAST</code></td><td>multiplier</td><td>5.0</td><td>1 … 50</td><td>A single reading beyond <code>VOLTFAST</code>&times;<code>REFBAND</code> declares voltage instantly (no averaging).</td></tr>
+        <tr><td><code>VOLTAVG</code></td><td>count</td><td>10</td><td>1 … 50</td><td>Readings averaged for the normal voltage-present decision.</td></tr>
+        <tr><td><code>TESTAGREE</code></td><td>count</td><td>1</td><td>1 … 10</td><td>Consecutive matching MOSFET tests required before a result counts.</td></tr>
+        <tr><td><code>STABLECOUNT</code></td><td>count</td><td>2</td><td>1 … 10</td><td>Detection passes a new state must repeat before the alerts switch (display debounce).</td></tr>
+        <tr><td><code>SETTLEPREUS</code></td><td>µs</td><td>300</td><td>0 … 5000</td><td>Settle time between MOSFET-off and the test reading.</td></tr>
+        <tr><td><code>SETTLEPOSTMS</code></td><td>ms</td><td>3</td><td>0 … 50</td><td>Idle after the test reading before the MOSFET returns on.</td></tr>
+        <tr><td><code>NEGFIX</code></td><td>bool</td><td>1</td><td>0/1</td><td>1 = use a fixed pseudo-reference (<code>NEGV</code>) for the negative side; 0 = read the negative sense pin live.</td></tr>
+        <tr><td><code>NEGV</code></td><td>volts</td><td>1.25</td><td>0 … 3.3</td><td>The fixed pseudo-reference voltage used when <code>NEGFIX</code> is 1.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Alerts</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Range</th><th>What it controls</th></tr></thead>
+      <tbody>
+        <tr><td><code>LED</code></td><td>bool</td><td>1</td><td>0/1</td><td>Master enable for the detection LED alerts (charging/battery indications still show).</td></tr>
+        <tr><td><code>BEEP</code></td><td>bool</td><td>1</td><td>0/1</td><td>Master enable for the speaker. <code>!SET,BEEP,0</code> + <code>!SAVE</code> = permanently silent unit.</td></tr>
+        <tr><td><code>BOOTMUTE</code></td><td>bool</td><td>1</td><td>0/1</td><td>Enable the "leads shorted at boot mutes audio for the session" feature.</td></tr>
+        <tr><td><code>PASSIVE</code></td><td>bool</td><td>1</td><td>0/1</td><td>1 = passive buzzer driven with tones (different pitches per alert); 0 = active buzzer (fixed tone, pin switched on/off).</td></tr>
+        <tr><td><code>CONTFREQ</code></td><td>Hz</td><td>2000</td><td>100 … 10000</td><td>Continuity beep pitch (passive buzzer only).</td></tr>
+        <tr><td><code>VOLTFREQ</code></td><td>Hz</td><td>2500</td><td>100 … 10000</td><td>Voltage beep pitch (passive buzzer only).</td></tr>
+        <tr><td><code>CONTPULSES</code></td><td>count</td><td>1</td><td>1 … 5</td><td>Pulses per continuity beep.</td></tr>
+        <tr><td><code>VOLTPULSES</code></td><td>count</td><td>2</td><td>1 … 5</td><td>Pulses per voltage beep (2 = the signature double-beep).</td></tr>
+        <tr><td><code>CONTREP</code></td><td>bool</td><td>1</td><td>0/1</td><td>Keep re-beeping while continuity holds.</td></tr>
+        <tr><td><code>VOLTREP</code></td><td>bool</td><td>0</td><td>0/1</td><td>Keep re-beeping while voltage persists.</td></tr>
+        <tr><td><code>CONTREPMS</code></td><td>ms</td><td>1000</td><td>100 … 60000</td><td>Repeat period for the continuity beep.</td></tr>
+        <tr><td><code>VOLTREPMS</code></td><td>ms</td><td>1000</td><td>100 … 60000</td><td>Repeat period for the voltage beep (when <code>VOLTREP</code>=1).</td></tr>
+        <tr><td><code>BEEPMIN</code></td><td>ms</td><td>500</td><td>50 … 10000</td><td>Minimum gap between beep sequences — the anti-machine-gun rate cap.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Power &amp; battery</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Range</th><th>What it controls</th></tr></thead>
+      <tbody>
+        <tr><td><code>CHGTHRESH</code></td><td>volts</td><td>2.0</td><td>0.5 … 3.3</td><td>VBUS-sense (VBUS/2) level above which the unit considers itself USB-powered / charging.</td></tr>
+        <tr><td><code>BATTEMPTY</code></td><td>volts</td><td>3.30</td><td>2.5 … 4.0</td><td>Battery voltage mapped to 0%.</td></tr>
+        <tr><td><code>BATTFULL</code></td><td>volts</td><td>4.20</td><td>3.0 … 4.5</td><td>Battery voltage mapped to 100%.</td></tr>
+        <tr><td><code>BATTFULLPCT</code></td><td>%</td><td>90</td><td>50 … 100</td><td>Charge percentage at/above which the charging blink turns green.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Miscellaneous</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Range</th><th>What it controls</th></tr></thead>
+      <tbody>
+        <tr><td><code>LOOPMS</code></td><td>ms</td><td>50</td><td>1 … 1000</td><td>Main-loop pacing. The CPU sleeps (WFI) between passes — larger = lower power, slower response.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="eeprom">
+  <div class="wrap">
+    <div class="eyebrow">7 &middot; Persistence</div>
+    <h2>How EEPROM storage works</h2>
+    <ul class="clean">
+      <li><strong>Two copies exist:</strong> the <em>RAM</em> config (what the unit is using right
+        now, edited by <code>!SET</code>) and the <em>EEPROM</em> config (what it will boot with).
+        <code>!SAVE</code> copies RAM &rarr; EEPROM; <code>!LOAD</code> copies EEPROM &rarr; RAM.</li>
+      <li><strong>Unsaved changes are flagged:</strong> the <code>$STATUS</code> line reports
+        <code>dirty=1</code> when the RAM config differs from what was last saved/loaded.</li>
+      <li><strong>Validation:</strong> the stored block carries a magic number, a version, and a
+        CRC. If any check fails at boot (first boot, corrupted data, or a firmware update that
+        changed the config layout) the unit falls back to factory defaults and re-seeds the
+        EEPROM automatically — it can never boot with garbage settings.</li>
+      <li><strong>Write endurance:</strong> the config is only written on an explicit
+        <code>!SAVE</code> (or that first-boot seed). The firmware never writes EEPROM on its own
+        during normal operation, so data-flash wear is not a practical concern.</li>
+      <li><strong>Factory reset:</strong> <code>!DEFAULTS</code> then <code>!SAVE</code>.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="diag" class="alt">
+  <div class="wrap">
+    <div class="eyebrow">8 &middot; Diagnostics</div>
+    <h2>Diagnostic mode</h2>
+    <p><code>!DIAG,1</code> switches the unit into diagnostic mode, intended for bench work and
+      for host software (e.g. the Python configuration GUI). Detection keeps running (so the LED
+      stays meaningful) unless you take manual control:</p>
+    <ul class="clean">
+      <li><code>!STREAM,1</code> streams raw ADC samples as <code>$DIAG</code> rows at the
+        <code>!RATE</code> interval — watch the front end live.</li>
+      <li><code>!MOSFET,0</code> / <code>!MOSFET,1</code> parks the bridge MOSFET for probing;
+        <code>!MOSFET,-1</code> returns it to automatic.</li>
+      <li><code>!CAP,5</code> performs a microsecond-resolution capture of both ADC channels
+        across a MOSFET toggle (5&nbsp;ms window here) and dumps the buffer — ideal for plotting
+        the discharge transient that the open/closed threshold discriminates.</li>
+      <li><code>!VMODE,2</code> disables the voltage-present bypass while characterising the
+        open/closed test (remember to restore <code>!VMODE,0</code>).</li>
+    </ul>
+    <p><code>!DIAG,0</code> exits and clears the streaming/MOSFET overrides.</p>
+  </div>
+</section>
+
+<section id="recipes">
+  <div class="wrap">
+    <div class="eyebrow">9 &middot; Recipes</div>
+    <h2>Common configuration recipes</h2>
+
+    <h3>Permanently disable the beeper</h3>
+    <pre>!SET,BEEP,0
+<span class="tx">$CFG,BEEP,0</span>
+!SAVE
+<span class="tx">$OK,save</span></pre>
+
+    <h3>Make DIP position 00 trigger on very high resistances</h3>
+    <pre>!SET,THRESH00,0.02      <span class="c">// smaller threshold = more sensitive</span>
+<span class="tx">$CFG,THRESH00,0.0200</span>
+!SAVE
+<span class="tx">$OK,save</span></pre>
+
+    <h3>Shift the resting centre after a hardware change</h3>
+    <pre>!SET,REFCENTER,-0.005
+<span class="tx">$CFG,REFCENTER,-0.0050</span>
+!SET,REFBAND,0.03
+<span class="tx">$CFG,REFBAND,0.0300</span>
+!SAVE
+<span class="tx">$OK,save</span></pre>
+
+    <h3>Quieter, slower continuity reminder</h3>
+    <pre>!SET,CONTREPMS,5000     <span class="c">// remind every 5 s instead of every 1 s</span>
+!SET,CONTFREQ,1500      <span class="c">// lower pitch</span>
+!SAVE</pre>
+
+    <h3>Check what a unit is currently configured to</h3>
+    <pre>!CFG
+<span class="tx">$CFG,REFCENTER,-0.0100
+$CFG,REFBAND,0.0250
+&hellip; (one row per key) &hellip;
+$CFGEND</span></pre>
+
+    <h3>Undo experiments you haven't saved</h3>
+    <pre>!LOAD
+<span class="tx">$OK,load</span>            <span class="c">// RAM restored to the last-saved EEPROM state</span></pre>
+  </div>
+</section>
+
+<section id="fixed" class="alt">
+  <div class="wrap">
+    <div class="eyebrow">10 &middot; Hardware Map</div>
+    <h2>Fixed (compile-time) hardware map</h2>
+    <p>These are properties of the Blinky Hawk PCB and are <em>not</em> runtime-configurable —
+      changing them requires editing and re-flashing the firmware
+      (<span class="mono">BlinkyHawk_RA4M1.ino</span>).</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Function</th><th>Pin / value</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>MCU</td><td>Seeed XIAO RA4M1</td><td>Renesas RA4M1, 14-bit ADC, 3.3&nbsp;V reference.</td></tr>
+        <tr><td>Sense positive</td><td>A2</td><td>Pseudo-differential positive input.</td></tr>
+        <tr><td>Sense negative</td><td>A1</td><td>Only read live when <code>NEGFIX</code>=0.</td></tr>
+        <tr><td>Bridge MOSFET gate</td><td>D7</td><td>HIGH = resting/bridge on.</td></tr>
+        <tr><td>Speaker</td><td>D9</td><td>Passive or active buzzer (<code>PASSIVE</code> key).</td></tr>
+        <tr><td>DIP switch "first digit"</td><td>D8</td><td>Pull-up; ON = pin grounded.</td></tr>
+        <tr><td>DIP switch "second digit"</td><td>D10</td><td>Pull-up; ON = pin grounded.</td></tr>
+        <tr><td>Status LED</td><td>Onboard RGB (data pin 6, power enable)</td><td>Colours and flash cadences are compile-time constants.</td></tr>
+        <tr><td>USB / charge sense</td><td>A3</td><td>Reads VBUS/2 through a divider.</td></tr>
+        <tr><td>Battery sense</td><td>BAT_DET / BAT_READ_EN</td><td>Onboard Vbatt/2 divider, gated by the enable pin.</td></tr>
+        <tr><td>Serial</td><td>USB-CDC, 115200 baud</td><td>Line-based text protocol (<a href="#serial">section 5</a>).</td></tr>
+      </tbody>
+    </table></div>
+    <p class="small">Also compile-time: LED colours and flash on-times/rate caps, beep pulse
+      micro-timing (pulse on/off durations), the charging-blink cadence, and the transient-capture
+      buffer size.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><strong>OIH Designs</strong> — Blinky Hawk firmware manual (BlinkyHawk_RA4M1, config v1).</p>
+    <p class="small"><a href="index.html">&larr; Back to the main project page</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
