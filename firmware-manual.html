@@ -103,6 +103,7 @@
       <a href="#dip">DIP&nbsp;Switches</a>
       <a href="#serial">Serial</a>
       <a href="#config">Config&nbsp;Keys</a>
+      <a href="user-guide.html">User&nbsp;guide</a>
       <a class="home" href="index.html">&larr; Main&nbsp;Site</a>
     </div>
   </div>
@@ -215,7 +216,7 @@
         <tr><td><span class="led blue"></span>Dim blue flash (1&nbsp;Hz max)</td><td>Leads floating / open.</td></tr>
         <tr><td><span class="led green"></span>Green flash (2&nbsp;Hz max)</td><td>Continuity (closed).</td></tr>
         <tr><td><span class="led red"></span>Red flash (2&nbsp;Hz max)</td><td>Voltage present — detection bypassed.</td></tr>
-        <tr><td><span class="led dimred"></span>Slow dim-red blink (25% duty)</td><td>Charging over USB; normal alerts suppressed. Send <code>!ALERTS,1</code> to re-enable alerts for the session.</td></tr>
+        <tr><td><span class="led dimred"></span>Slow dim-red blink (25% duty)</td><td>Charging over USB; normal alerts suppressed. <code>!ALERTS,1</code> re-enables them for the session, but using the detector on USB power is not recommended: supply noise causes false alerts, and the cable can couple the meter to earth ground.</td></tr>
         <tr><td><span class="led green"></span>Slow dim-green blink while plugged in</td><td>Charging and the battery reads full (&ge; <code>BATTFULLPCT</code>&nbsp;%).</td></tr>
         <tr><td><span class="led green"></span>1–4 green blinks at power-on</td><td>Battery level: 1&nbsp;=&nbsp;0–25%, 2&nbsp;=&nbsp;25–50%, 3&nbsp;=&nbsp;50–75%, 4&nbsp;=&nbsp;75–100%.</td></tr>
         <tr><td><span class="led off"></span>Off between flashes</td><td>Normal — every alert is a rate-limited flash, not a steady light, to save power.</td></tr>
@@ -253,10 +254,10 @@
     <div class="tablewrap"><table>
       <thead><tr><th>Position</th><th>D8 switch</th><th>D10 switch</th><th>Config key</th><th>Factory default</th></tr></thead>
       <tbody>
-        <tr><td class="mono">00</td><td>ON</td><td>ON</td><td><code>THRESH00</code></td><td>0.05&nbsp;V (most sensitive)</td></tr>
-        <tr><td class="mono">01</td><td>ON</td><td>OFF</td><td><code>THRESH01</code></td><td>0.15&nbsp;V</td></tr>
-        <tr><td class="mono">10</td><td>OFF</td><td>ON</td><td><code>THRESH10</code></td><td>0.30&nbsp;V</td></tr>
-        <tr><td class="mono">11</td><td>OFF</td><td>OFF</td><td><code>THRESH11</code></td><td>0.50&nbsp;V (as-shipped position)</td></tr>
+        <tr><td class="mono">00</td><td>ON</td><td>ON</td><td><code>THRESH00</code></td><td>0.15&nbsp;V</td></tr>
+        <tr><td class="mono">01</td><td>ON</td><td>OFF</td><td><code>THRESH01</code></td><td>0.54&nbsp;V</td></tr>
+        <tr><td class="mono">10</td><td>OFF</td><td>ON</td><td><code>THRESH10</code></td><td>0.45&nbsp;V (factory-set position)</td></tr>
+        <tr><td class="mono">11</td><td>OFF</td><td>OFF</td><td><code>THRESH11</code></td><td>0.62&nbsp;V</td></tr>
       </tbody>
     </table></div>
     <p>The switches are read <strong>live</strong> — flip them at any time and the very next
@@ -348,12 +349,12 @@
     <div class="tablewrap"><table>
       <thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Range</th><th>What it controls</th></tr></thead>
       <tbody>
-        <tr><td><code>REFCENTER</code></td><td>volts</td><td>&minus;0.01</td><td>&minus;1 … 1</td><td>Resting differential centre. Voltage detection measures deviation from this point.</td></tr>
+        <tr><td><code>REFCENTER</code></td><td>volts</td><td>&minus;0.02</td><td>&minus;1 … 1</td><td>Resting differential centre. Voltage detection measures deviation from this point.</td></tr>
         <tr><td><code>REFBAND</code></td><td>volts</td><td>0.025</td><td>0.001 … 1</td><td>Half-width of the "no voltage present" window around <code>REFCENTER</code>.</td></tr>
-        <tr><td><code>THRESH00</code></td><td>volts</td><td>0.05</td><td>0.001 … 3.3</td><td>Open/closed threshold for DIP position 00 (both switches ON).</td></tr>
-        <tr><td><code>THRESH01</code></td><td>volts</td><td>0.15</td><td>0.001 … 3.3</td><td>Threshold for DIP position 01 (D8 ON, D10 OFF).</td></tr>
-        <tr><td><code>THRESH10</code></td><td>volts</td><td>0.30</td><td>0.001 … 3.3</td><td>Threshold for DIP position 10 (D8 OFF, D10 ON).</td></tr>
-        <tr><td><code>THRESH11</code></td><td>volts</td><td>0.50</td><td>0.001 … 3.3</td><td>Threshold for DIP position 11 (both switches OFF — as shipped).</td></tr>
+        <tr><td><code>THRESH00</code></td><td>volts</td><td>0.15</td><td>0.001 … 3.3</td><td>Open/closed threshold for DIP position 00 (both switches ON).</td></tr>
+        <tr><td><code>THRESH01</code></td><td>volts</td><td>0.54</td><td>0.001 … 3.3</td><td>Threshold for DIP position 01 (D8 ON, D10 OFF).</td></tr>
+        <tr><td><code>THRESH10</code></td><td>volts</td><td>0.45</td><td>0.001 … 3.3</td><td>Threshold for DIP position 10 (D8 OFF, D10 ON — the factory-set position).</td></tr>
+        <tr><td><code>THRESH11</code></td><td>volts</td><td>0.62</td><td>0.001 … 3.3</td><td>Threshold for DIP position 11 (both switches OFF).</td></tr>
         <tr><td><code>VOLTFAST</code></td><td>multiplier</td><td>5.0</td><td>1 … 50</td><td>A single reading beyond <code>VOLTFAST</code>&times;<code>REFBAND</code> declares voltage instantly (no averaging).</td></tr>
         <tr><td><code>VOLTAVG</code></td><td>count</td><td>10</td><td>1 … 50</td><td>Readings averaged for the normal voltage-present decision.</td></tr>
         <tr><td><code>TESTAGREE</code></td><td>count</td><td>1</td><td>1 … 10</td><td>Consecutive matching MOSFET tests required before a result counts.</td></tr>
@@ -525,7 +526,8 @@ $CFGEND</span></pre>
 <footer>
   <div class="wrap">
     <p><strong>OIH Designs</strong> — Blinky Hawk firmware manual (BlinkyHawk_RA4M1, config v1).</p>
-    <p class="small"><a href="index.html">&larr; Back to the main project page</a></p>
+    <p class="small"><a href="user-guide.html">User guide</a> &middot;
+      <a href="index.html">&larr; Back to the main project page</a></p>
   </div>
 </footer>
 
