@@ -104,6 +104,32 @@
     overflow:hidden; box-shadow:0 12px 36px rgba(20,34,49,.16); margin-top:8px;}
   .videowrap iframe{position:absolute; inset:0; width:100%; height:100%; border:0;}
 
+  /* Signup form */
+  .signup{max-width:680px; margin:26px auto 0; background:#fff; border:1px solid var(--grid);
+    border-radius:14px; padding:30px 30px 26px; box-shadow:0 10px 30px rgba(20,34,49,.08);}
+  .signup .field{margin:0 0 18px;}
+  .signup label{display:block; font-weight:600; font-size:.98rem; margin-bottom:7px;}
+  .signup input[type=email], .signup input[type=text], .signup textarea{
+    width:100%; font:inherit; font-size:1rem; color:var(--ink); background:var(--bg);
+    border:1.5px solid var(--grid); border-radius:8px; padding:11px 13px;}
+  .signup input[type=email]:focus, .signup input[type=text]:focus, .signup textarea:focus{
+    outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(11,111,184,.14);}
+  .signup textarea{resize:vertical; min-height:82px;}
+  .signup .note{font-size:.88rem; color:var(--muted); margin:6px 0 0;}
+  .signup .divider{border:0; border-top:1px solid var(--grid); margin:26px 0 22px;}
+  .signup .optintro{font-size:1.05rem; font-weight:700; margin:0 0 2px;}
+  .signup fieldset{border:0; margin:0 0 18px; padding:0;}
+  .signup legend{font-weight:600; font-size:.98rem; margin-bottom:9px; padding:0;}
+  .signup .opt{display:flex; align-items:center; gap:9px; margin:7px 0; font-weight:400; cursor:pointer;}
+  .signup .opt input[type=radio]{width:17px; height:17px; margin:0; accent-color:var(--accent); flex:0 0 auto;}
+  .signup .opt .otherfield{flex:1; margin-left:4px;}
+  .signup .required{color:var(--red);}
+  .signup button{width:100%; margin-top:4px; cursor:pointer; border:0; font:inherit;}
+  .signup .formmsg{display:none; margin-top:16px; padding:13px 16px; border-radius:8px; font-weight:600;}
+  .signup .formmsg.ok{display:block; background:#e7f4ec; color:var(--green); border:1px solid #b7ddc4;}
+  .signup .formmsg.err{display:block; background:#fbeae9; color:var(--red); border:1px solid #eec4c1;}
+  .hp{position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden;}
+
   footer{background:var(--bg-ink); color:#cdd8e3; padding:54px 0 40px; border-top:none;}
   footer a{color:#fff;}
   footer h3{color:#fff; margin-top:0;}
@@ -124,6 +150,7 @@
       <a href="#hardware">Hardware</a>
       <a href="user-guide.html">User guide</a>
       <a href="firmware-manual.html">Firmware manual</a>
+      <a href="#notify">Get notified</a>
       <a href="#involved" class="btn">Get involved</a>
     </div>
   </div>
@@ -496,6 +523,103 @@
   </div>
 </section>
 
+<!-- NOTIFY / SIGNUP -->
+<section id="notify">
+  <div class="wrap">
+    <span class="eyebrow">Stay in the loop</span>
+    <h2 class="center">Want to know when Blinky&nbsp;Hawk is available to order?</h2>
+    <p class="lede center" style="max-width:640px; margin:.4em auto 0;">Drop your email below and I'll let you
+      know the moment it's ready.</p>
+
+    <form class="signup" id="notify-form"
+          action="https://formsubmit.co/Nick@oihdesigns.com" method="POST">
+      <!-- FormSubmit configuration -->
+      <input type="hidden" name="_subject" value="Blinky Hawk — new signup">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_captcha" value="false">
+      <!-- Honeypot: bots fill this, humans never see it -->
+      <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+      <div class="field">
+        <label for="email">Email address <span class="required">*</span></label>
+        <input type="email" id="email" name="email" required placeholder="you@example.com">
+        <p class="note">Your email will only be used to send you updates on the Blinky&nbsp;Hawk project —
+          expect several emails per year, or less. No spam, no sharing.</p>
+      </div>
+
+      <hr class="divider">
+
+      <p class="optintro">A few optional questions</p>
+      <p class="note" style="margin:0 0 20px;">These optional questions will help me decide what to focus on before
+        bringing it to market. Feel free to skip any of them.</p>
+
+      <fieldset>
+        <legend>What would you consider a reasonable price?</legend>
+        <label class="opt"><input type="radio" name="Reasonable price" value="Under $50"> Under $50</label>
+        <label class="opt"><input type="radio" name="Reasonable price" value="$50–$70"> $50–$70</label>
+        <label class="opt"><input type="radio" name="Reasonable price" value="Over $70"> Over $70</label>
+        <label class="opt"><input type="radio" name="Reasonable price" value="Other">
+          Other:
+          <input type="text" class="otherfield" name="Reasonable price (other)"
+                 placeholder="Your answer" aria-label="Other reasonable price"></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Battery preference</legend>
+        <label class="opt"><input type="radio" name="Battery preference"
+          value="Rechargeable Li (more expensive)"> Rechargeable Li — more expensive</label>
+        <label class="opt"><input type="radio" name="Battery preference"
+          value="AA or AAA (bulkier product)"> AA or AAA — bulkier product</label>
+        <label class="opt"><input type="radio" name="Battery preference" value="Indifferent"> Indifferent</label>
+        <label class="opt"><input type="radio" name="Battery preference" value="Other">
+          Other:
+          <input type="text" class="otherfield" name="Battery preference (other)"
+                 placeholder="Your answer" aria-label="Other battery preference"></label>
+      </fieldset>
+
+      <div class="field">
+        <label for="comments">Other comments</label>
+        <textarea id="comments" name="Other comments" placeholder="Anything else you'd like me to know?"></textarea>
+      </div>
+
+      <button type="submit" class="btn">Notify me</button>
+      <p class="formmsg" id="notify-msg" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
+<script>
+(function(){
+  var form = document.getElementById('notify-form');
+  var msg  = document.getElementById('notify-msg');
+  if(!form) return;
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var btn = form.querySelector('button[type=submit]');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    msg.className = 'formmsg';
+    fetch('https://formsubmit.co/ajax/Nick@oihdesigns.com', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: new FormData(form)
+    })
+    .then(function(r){ if(!r.ok) throw new Error('bad response'); return r.json(); })
+    .then(function(){
+      form.reset();
+      msg.className = 'formmsg ok';
+      msg.textContent = 'Thanks! You’re on the list — I’ll be in touch with Blinky Hawk updates.';
+      btn.disabled = false; btn.textContent = 'Notify me';
+    })
+    .catch(function(){
+      msg.className = 'formmsg err';
+      msg.innerHTML = 'Something went wrong. Please email me directly at ' +
+        '<a href="mailto:Nick@OIHDesigns.com">Nick@OIHDesigns.com</a>.';
+      btn.disabled = false; btn.textContent = 'Notify me';
+    });
+  });
+})();
+</script>
+
 <footer>
   <div class="wrap foot-grid">
     <div>
@@ -509,6 +633,7 @@
         <a href="https://oihdesigns.com/arduino-multimeter-project" target="_blank" rel="noopener">Project page</a><br>
         <a href="user-guide.html">User guide</a><br>
         <a href="firmware-manual.html">Firmware manual</a><br>
+        <a href="index.html#notify">Get notified</a><br>
         <a href="https://www.youtube.com/watch?v=wVhMOBtXWjg" target="_blank" rel="noopener">Demo video</a><br>
         <a href="mailto:Nick@OIHDesigns.com">Nick@OIHDesigns.com</a>
       </p>
