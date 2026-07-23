@@ -59,6 +59,7 @@
     background:var(--bg-alt); border:1px solid var(--grid); border-radius:5px;
     padding:1px 6px; white-space:nowrap;}
   td code{background:#eef4fa;}
+  thead th code{background:rgba(255,255,255,.18); color:#fff; border-color:rgba(255,255,255,.45);}
   pre{font-family:Consolas,"Cascadia Mono",Menlo,monospace; font-size:.88rem;
     background:var(--bg-ink); color:#dfe9f2; border-radius:10px; padding:18px 22px;
     overflow-x:auto; line-height:1.55;}
@@ -111,7 +112,7 @@
 
 <section class="hero">
   <div class="wrap">
-    <span class="badge">Firmware: BlinkyHawk_RA4M1 &middot; config v1</span>
+    <span class="badge">Firmware: BlinkyHawk_RA4M1 &middot; config v2</span>
     <div class="eyebrow">End-User Documentation</div>
     <h1>Blinky Hawk Firmware Manual</h1>
     <p class="sub">How the open-lead detector firmware works — and how to reconfigure a shipped
@@ -187,15 +188,50 @@
         <code>VOLTAVG</code> readings are averaged and compared against the
         <code>REFBAND</code> window. Voltage present &rarr; state = VOLTAGE, and the MOSFET test
         is skipped entirely.</li>
-      <li><strong>Open/closed test.</strong> The MOSFET switches OFF, the front end settles for
-        <code>SETTLEPREUS</code>&nbsp;µs, the differential is read, and the MOSFET returns ON.
-        If the deviation exceeds the <em>active threshold</em> (set by the DIP switches — next
-        section) the leads are FLOATING; otherwise they are CLOSED. The test can be required to
-        agree <code>TESTAGREE</code> times in a row before it counts.</li>
+      <li><strong>Open/closed test.</strong> The MOSFET switches OFF and the firmware derives an
+        open/closed <em>metric</em> from the front end (the exact method is selectable — see below),
+        then the MOSFET returns ON. If the metric exceeds the <em>active threshold</em> (set by the
+        DIP switches — next section) the leads are FLOATING; otherwise they are CLOSED. The test can
+        be required to agree <code>TESTAGREE</code> times in a row before it counts.</li>
       <li><strong>Debounce.</strong> A newly detected state must repeat for
         <code>STABLECOUNT</code> consecutive passes before the LED/speaker switch to it, so a
         single noisy reading can't make the alerts stutter.</li>
     </ol>
+
+    <h3>Detection methods</h3>
+    <p>When the MOSFET switches off, the positive sense node is briefly pulled away from its resting
+      point and then <strong>recovers</strong> back toward zero differential. How fast it recovers
+      depends on the impedance across the leads — a dead short snaps back quickly, an open lead
+      drifts back slowly. The <code>DETMETHOD</code> key selects how that recovery is turned into a
+      single number to compare against the threshold. In every method a <strong>larger metric means
+      more open</strong>, so the DIP threshold table and the comparison work the same way for all
+      three:</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th><code>DETMETHOD</code></th><th>Metric</th><th>Threshold units</th><th>How it works</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">0 — single</td><td>|differential|</td><td>volts</td>
+            <td>The original method: take one differential reading <code>SETTLEPREUS</code>&nbsp;µs
+                after the MOSFET switches off, and threshold its magnitude.</td></tr>
+        <tr><td class="mono">1 — time-to-return</td><td>recovery time</td><td>milliseconds</td>
+            <td>Sample the recovery and measure how long the differential takes to fall back within
+                <code>DETBAND</code> of the resting centre. Longer = more open. Naturally tolerant of
+                unit-to-unit gain differences, since it measures a time constant rather than an
+                amplitude.</td></tr>
+        <tr><td class="mono">2 — area</td><td>tail integral</td><td>volt·milliseconds</td>
+            <td>Integrate the magnitude of the recovery from <code>DETAREAUS</code>&nbsp;µs to
+                <code>DETWINUS</code>&nbsp;µs. Larger area = more open. The tail window skips the
+                large initial dip (which is nearly identical for every lead condition).</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn">
+      <p><strong>The threshold units change with the method.</strong> Because
+        <code>THRESH00…THRESH11</code> are compared directly against the metric, switching
+        <code>DETMETHOD</code> changes what those four numbers <em>mean</em> (volts, milliseconds, or
+        volt·milliseconds). After changing the method you must re-tune the threshold values for the
+        new units, then <code>!SAVE</code>. The unit ships on <strong>method 0</strong>, whose
+        behaviour is unchanged from earlier firmware.</p>
+    </div>
+
     <div class="callout">
       <p><strong>Everything in <code>CODE-LIKE</code> type above is an EEPROM configuration
         key.</strong> The full reference, including defaults and allowed ranges, is in
@@ -303,14 +339,34 @@
             <td><code>$OK,load</code></td></tr>
         <tr><td><code>!DEFAULTS</code></td><td>Load factory defaults into RAM (EEPROM untouched
             until you <code>!SAVE</code>).</td><td><code>$OK,defaults</code></td></tr>
+        <tr><td><code>!SN</code></td><td>Report the unit's serial number.</td>
+            <td><code>$SN,&lt;value&gt;</code> (empty if unassigned)</td></tr>
+        <tr><td><code>!SN,&lt;value&gt;</code></td><td>Write the serial number. Persists to its own
+            EEPROM block <em>immediately</em> (no <code>!SAVE</code> needed). Max 15 characters, no
+            commas.</td><td><code>$SN,&lt;value&gt;</code> then <code>$OK,sn</code></td></tr>
       </tbody>
     </table></div>
+
+    <h3>Unit serial number</h3>
+    <p>Each unit can carry a <strong>serial number</strong> — a short identity string (up to 15
+      characters) written once, usually at first bring-up, and read back on every boot. It is stored
+      in <strong>its own EEPROM block, separate from the configuration</strong>, so it survives
+      <code>!DEFAULTS</code>, a <code>!SAVE</code> of new settings, and even a firmware update that
+      changes the config layout. Assign one with <code>!SN,&lt;value&gt;</code>; read it with a bare
+      <code>!SN</code>. The current serial number is also reported at the end of every
+      <code>$STATUS</code> line as <code>sn=&lt;value&gt;</code> (empty when unassigned).</p>
+    <div class="callout">
+      <p><strong>The configuration GUI uses this.</strong> When you save a unit's configuration, the
+        host GUI records that unit's full config — keyed by serial number — into a master CSV, giving
+        you an as-shipped record of every unit. If a unit has no serial number yet, the GUI prompts
+        you to assign one.</p>
+    </div>
 
     <h3>Status &amp; diagnostic commands</h3>
     <div class="tablewrap"><table>
       <thead><tr><th>Command</th><th>What it does</th></tr></thead>
       <tbody>
-        <tr><td><code>!STATUS</code> or <code>!?</code></td><td>Print the <code>$STATUS</code> summary line (mode, DIP position, active threshold, charge/battery state, unsaved-changes flag&hellip;).</td></tr>
+        <tr><td><code>!STATUS</code> or <code>!?</code></td><td>Print the <code>$STATUS</code> summary line (mode, DIP position, active threshold, detection method, live metric, charge/battery state, unsaved-changes flag, serial number&hellip;).</td></tr>
         <tr><td><code>!ALERTS[,0|1]</code></td><td>Re-enable the normal alerts while charging (<code>1</code>) or restore the charging blink (<code>0</code>). Bare = toggle. Auto-clears on unplug.</td></tr>
         <tr><td><code>!DIAG[,0|1]</code></td><td>Enter/exit diagnostic mode (bare = toggle). See <a href="#diag">section 8</a>.</td></tr>
         <tr><td><code>!STREAM[,0|1]</code></td><td>Continuous raw ADC streaming on/off (diagnostic mode only).</td></tr>
@@ -328,6 +384,7 @@
         <tr><td><code>$STATUS,&hellip;</code></td><td>Key=value status summary (sent after most commands).</td></tr>
         <tr><td><code>$CFG,&lt;key&gt;,&lt;value&gt;</code></td><td>One configuration value.</td></tr>
         <tr><td><code>$CFGEND</code></td><td>End of a <code>!CFG</code> dump.</td></tr>
+        <tr><td><code>$SN,&lt;value&gt;</code></td><td>The unit serial number (empty if unassigned).</td></tr>
         <tr><td><code>$OK,&lt;what&gt;</code> / <code>$ERR,&lt;what&gt;,&lt;detail&gt;</code></td><td>Command acknowledged / failed.</td></tr>
         <tr><td><code>$DIP,&lt;pos&gt;,&lt;threshV&gt;</code></td><td>A DIP switch was flipped; new position (0–3) and active threshold.</td></tr>
         <tr><td><code>$DIAG,&lt;ms&gt;,&lt;rawPos&gt;,&lt;rawNeg&gt;,&lt;posV&gt;,&lt;negV&gt;,&lt;diffV&gt;</code></td><td>One streamed raw sample.</td></tr>
@@ -351,20 +408,27 @@
       <tbody>
         <tr><td><code>REFCENTER</code></td><td>volts</td><td>&minus;0.02</td><td>&minus;1 … 1</td><td>Resting differential centre. Voltage detection measures deviation from this point.</td></tr>
         <tr><td><code>REFBAND</code></td><td>volts</td><td>0.025</td><td>0.001 … 1</td><td>Half-width of the "no voltage present" window around <code>REFCENTER</code>.</td></tr>
-        <tr><td><code>THRESH00</code></td><td>volts</td><td>0.15</td><td>0.001 … 3.3</td><td>Open/closed threshold for DIP position 00 (both switches ON).</td></tr>
-        <tr><td><code>THRESH01</code></td><td>volts</td><td>0.54</td><td>0.001 … 3.3</td><td>Threshold for DIP position 01 (D8 ON, D10 OFF).</td></tr>
-        <tr><td><code>THRESH10</code></td><td>volts</td><td>0.45</td><td>0.001 … 3.3</td><td>Threshold for DIP position 10 (D8 OFF, D10 ON — the factory-set position).</td></tr>
-        <tr><td><code>THRESH11</code></td><td>volts</td><td>0.62</td><td>0.001 … 3.3</td><td>Threshold for DIP position 11 (both switches OFF).</td></tr>
+        <tr><td><code>THRESH00</code></td><td>units*</td><td>0.15</td><td>0.001 … 3.3</td><td>Open/closed threshold for DIP position 00 (both switches ON).</td></tr>
+        <tr><td><code>THRESH01</code></td><td>units*</td><td>0.54</td><td>0.001 … 3.3</td><td>Threshold for DIP position 01 (D8 ON, D10 OFF).</td></tr>
+        <tr><td><code>THRESH10</code></td><td>units*</td><td>0.45</td><td>0.001 … 3.3</td><td>Threshold for DIP position 10 (D8 OFF, D10 ON — the factory-set position).</td></tr>
+        <tr><td><code>THRESH11</code></td><td>units*</td><td>0.62</td><td>0.001 … 3.3</td><td>Threshold for DIP position 11 (both switches OFF).</td></tr>
+        <tr><td><code>DETMETHOD</code></td><td>0/1/2</td><td>0</td><td>0 … 2</td><td>Detection method: 0 = single reading (volts), 1 = time-to-return (ms), 2 = tail area (V·ms). See <a href="#detection">section 2</a>. Changing this changes the units of the <code>THRESH</code> keys.</td></tr>
+        <tr><td><code>DETBAND</code></td><td>volts</td><td>0.05</td><td>0.005 … 1</td><td>Method&nbsp;1 only: the differential is "returned" once it comes back within this band of the resting centre.</td></tr>
+        <tr><td><code>DETWINUS</code></td><td>µs</td><td>1500</td><td>200 … 5000</td><td>Methods&nbsp;1&nbsp;&amp;&nbsp;2: maximum recovery-sampling window. Also the timeout — if the differential never returns, the metric maxes out (reads as fully open).</td></tr>
+        <tr><td><code>DETAREAUS</code></td><td>µs</td><td>400</td><td>0 … 5000</td><td>Method&nbsp;2 only: where the area integration starts, measured from the MOSFET-off instant. Skips the common initial dip so only the discriminating tail is integrated.</td></tr>
         <tr><td><code>VOLTFAST</code></td><td>multiplier</td><td>5.0</td><td>1 … 50</td><td>A single reading beyond <code>VOLTFAST</code>&times;<code>REFBAND</code> declares voltage instantly (no averaging).</td></tr>
         <tr><td><code>VOLTAVG</code></td><td>count</td><td>10</td><td>1 … 50</td><td>Readings averaged for the normal voltage-present decision.</td></tr>
         <tr><td><code>TESTAGREE</code></td><td>count</td><td>1</td><td>1 … 10</td><td>Consecutive matching MOSFET tests required before a result counts.</td></tr>
         <tr><td><code>STABLECOUNT</code></td><td>count</td><td>2</td><td>1 … 10</td><td>Detection passes a new state must repeat before the alerts switch (display debounce).</td></tr>
-        <tr><td><code>SETTLEPREUS</code></td><td>µs</td><td>300</td><td>0 … 5000</td><td>Settle time between MOSFET-off and the test reading.</td></tr>
+        <tr><td><code>SETTLEPREUS</code></td><td>µs</td><td>300</td><td>0 … 5000</td><td>Settle time between MOSFET-off and the test reading (<code>DETMETHOD</code>&nbsp;0 only; methods 1 &amp; 2 sample from the toggle instant).</td></tr>
         <tr><td><code>SETTLEPOSTMS</code></td><td>ms</td><td>3</td><td>0 … 50</td><td>Idle after the test reading before the MOSFET returns on.</td></tr>
         <tr><td><code>NEGFIX</code></td><td>bool</td><td>1</td><td>0/1</td><td>1 = use a fixed pseudo-reference (<code>NEGV</code>) for the negative side; 0 = read the negative sense pin live.</td></tr>
         <tr><td><code>NEGV</code></td><td>volts</td><td>1.25</td><td>0 … 3.3</td><td>The fixed pseudo-reference voltage used when <code>NEGFIX</code> is 1.</td></tr>
       </tbody>
     </table></div>
+    <p class="small">* <strong><code>THRESH</code> units follow <code>DETMETHOD</code>:</strong>
+      volts when method&nbsp;0, milliseconds when method&nbsp;1, volt·milliseconds when method&nbsp;2.
+      The defaults shown are the method-0 (volts) values the unit ships with.</p>
 
     <h3>Alerts</h3>
     <div class="tablewrap"><table>
@@ -425,6 +489,10 @@
         <code>!SAVE</code> (or that first-boot seed). The firmware never writes EEPROM on its own
         during normal operation, so data-flash wear is not a practical concern.</li>
       <li><strong>Factory reset:</strong> <code>!DEFAULTS</code> then <code>!SAVE</code>.</li>
+      <li><strong>The serial number is separate:</strong> it lives in its own EEPROM block with its
+        own magic/CRC, so it is <em>not</em> affected by <code>!DEFAULTS</code>, <code>!SAVE</code>,
+        or a config-layout change. It is written only by <code>!SN,&lt;value&gt;</code>. See
+        <a href="#serial">section 5</a>.</li>
     </ul>
   </div>
 </section>
@@ -491,6 +559,21 @@ $CFGEND</span></pre>
     <h3>Undo experiments you haven't saved</h3>
     <pre>!LOAD
 <span class="tx">$OK,load</span>            <span class="c">// RAM restored to the last-saved EEPROM state</span></pre>
+
+    <h3>Switch to the time-to-return detection method</h3>
+    <pre>!SET,DETMETHOD,1        <span class="c">// metric is now recovery time in ms</span>
+<span class="tx">$CFG,DETMETHOD,1</span>
+!SET,THRESH11,0.9       <span class="c">// re-tune the active DIP position in the NEW units (ms)</span>
+<span class="tx">$CFG,THRESH11,0.9000</span>
+!SAVE
+<span class="tx">$OK,save</span></pre>
+
+    <h3>Assign a serial number to a new unit</h3>
+    <pre>!SN                     <span class="c">// check first — is one already set?</span>
+<span class="tx">$SN,</span>                    <span class="c">// empty = unassigned</span>
+!SN,BH-2026-001
+<span class="tx">$SN,BH-2026-001
+$OK,sn</span>                 <span class="c">// written to EEPROM immediately; no !SAVE needed</span></pre>
   </div>
 </section>
 
@@ -525,7 +608,7 @@ $CFGEND</span></pre>
 
 <footer>
   <div class="wrap">
-    <p><strong>OIH Designs</strong> — Blinky Hawk firmware manual (BlinkyHawk_RA4M1, config v1).</p>
+    <p><strong>OIH Designs</strong> — Blinky Hawk firmware manual (BlinkyHawk_RA4M1, config v2).</p>
     <p class="small"><a href="user-guide.html">User guide</a> &middot;
       <a href="index.html">&larr; Back to the main project page</a></p>
   </div>
